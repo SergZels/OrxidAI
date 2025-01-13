@@ -1,0 +1,9 @@
+qdrant-client
+google-generativeai
+requests
+aiogram
+sentence-transformers
+python-dotenv
+fastapi
+uvicorn
+python-multipart
