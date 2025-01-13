@@ -6,10 +6,10 @@ from fastapi.responses import HTMLResponse
 from fastapi.requests import Request
 import uvicorn
 import asyncio
-import os
+
 from contextlib import asynccontextmanager
 from biznesLogic import router, logger,send_telegram_message
-from init import bot,SERV,WebhookURL,URL,PASSWORD,AdminIDSerg
+from init import bot,SERV,WebhookURL,URL,PASSWORD,AdminIDSerg,DataBase
 from fastapi.middleware.cors import CORSMiddleware
 
 dp = Dispatcher()

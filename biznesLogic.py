@@ -1,23 +1,15 @@
 from aiogram import Router, F, types
 from aiogram.types import Message, FSInputFile
-from aiogram.filters import CommandStart, CommandObject
-from aiogram.fsm.context import FSMContext
-from aiogram.fsm.state import StatesGroup, State
-from aiogram.types.web_app_info import WebAppInfo
-from aiogram.utils.keyboard import InlineKeyboardBuilder
-from aiogram.utils.deep_linking import decode_payload
-from aiogram.utils.deep_linking import create_start_link
-import re
+from aiogram.filters import CommandStart
+from aiogram.enums import ChatAction
 import logging
 from qdrant import find_answer
-import os
-from datetime import datetime
-from init import bot, AdminID, AdminIDJulia, AdminIDSerg, TELEGRAM_API_URL, BroadcastURL, model
+from init import TELEGRAM_API_URL, model,DataBase,bot,AdminIDSerg
 import aiohttp
 import asyncio
 
-router = Router()
 
+router = Router()
 
 class AsyncFileHandler(logging.FileHandler):  # для асинхронного логування
     def emit(self, record):
@@ -32,6 +24,22 @@ formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(messag
 handler.setFormatter(formatter)
 logger.addHandler(handler)
 
+def prepare_prompt(user_message: str) -> str:
+    return f"""Твоя роль цифровий менеджер ательє Орхідея. На основі наступної інформації про компанію, дай відповідь на запитання клієнта.
+    Відповідай виключно українською мовою. Якщо інформації недостатньо, попроси уточнити запитання. Якщо інформація відсутня то скажи "Нажаль не маю інформації по вашому запитанню. Зателефонуйтте в ательє 067777777".
+    Якщо клієнт вітається то привітайся з ним. (Доброго дня!). Якщо клієнт дякує то відповідай (Будь ласка! Заходіть будемо раді вас бачити!).
+    
+    Загальна інформація про компанію:
+    Ательє Орхідея займається пошиттям і ремонтом одягу та прокатом костюмів. Працює на ринку з 2002 року.
+    Адреса: вул. 22 січня, 17а (біля стадіону) телефон 067777777 email: zelse@ukr.net
+    Графік роботи: пн-пт 9:00-18:00, сб 9:00-15:00, нд та дні релігійних свят вихідний
+    
+    Детальніша інформація про компанію із векторної бази знань:
+    {find_answer(user_message, top_k=2)}
+    
+
+    Запитання клієнта: {user_message}
+    """
 
 async def send_telegram_message(chat_id, text):
     payload = {
@@ -54,24 +62,20 @@ async def send_telegram_message(chat_id, text):
 
 @router.message(CommandStart())
 async def send_welcome(message: Message):
-    await message.reply("Вітаю! Я бот вашої фірми. Задайте будь-яке запитання, і я спробую вам допомогти!")
+    await message.answer("Вітаю! Я бот вашої фірми. Задайте будь-яке запитання, і я спробую вам допомогти!")
 
-def prepare_prompt(user_message: str) -> str:
-    return f"""На основі наступної інформації про компанію, дай відповідь на запитання клієнта.
-    Відповідай лаконічно та по суті і виключно українською мовою. Якщо інформації недостатньо, попроси уточнити запитання.
+    if await DataBase.is_subscriber_exists(message.from_user.id) == False:
+        await DataBase.add_subscriber(message.from_user.id, message.from_user.username)
+        #await bot.send_message(AdminIDSerg, f"Новенький підписався! Нік - {message.from_user.username}")
 
-    Інформація про компанію:
-    {find_answer(user_message, top_k=1)}
 
-    Запитання клієнта: {user_message}
-    """
 
 @router.message()
 async def handle_question(message: Message):
+    await message.bot.send_chat_action(chat_id=message.chat.id, action=ChatAction.TYPING)
     prompt = prepare_prompt(message.text)
     bot_response = model.generate_content(prompt)
-    await message.reply(bot_response.text)
-
+    await message.answer(bot_response.text)
 
 
 @router.message(F.text.lower() == "/help")

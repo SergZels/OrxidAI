@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 import os
 from aiogram.enums import ParseMode
 import google.generativeai as genai
+from database import BotBD
 
 load_dotenv()
 
@@ -29,4 +30,5 @@ AdminIDJulia = os.getenv("ADMIN_Julia")
 AdminID = [AdminIDSerg, AdminIDJulia]
 BroadcastURL = os.getenv("BroadcastURL")
 bot = Bot(token=API_TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
+DataBase = BotBD()
 
