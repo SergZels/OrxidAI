@@ -1,1 +1,4 @@
 .env
+dbUsers.db
+Logfile.txt
+todo.txt
