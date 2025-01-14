@@ -5,6 +5,7 @@ import os
 from aiogram.enums import ParseMode
 import google.generativeai as genai
 from database import BotBD
+import redis
 
 load_dotenv()
 
@@ -31,4 +32,5 @@ AdminID = [AdminIDSerg, AdminIDJulia]
 BroadcastURL = os.getenv("BroadcastURL")
 bot = Bot(token=API_TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
 DataBase = BotBD()
+redis_client = redis.Redis(host='192.168.1.10', port=6379, db=0, decode_responses=True)
 

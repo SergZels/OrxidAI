@@ -6,7 +6,7 @@ from companyInfo import INFO
 model = SentenceTransformer('all-MiniLM-L6-v2')
 
 #client = QdrantClient(path="./qa_storage")
-client = QdrantClient(host="localhost", port=6333)
+client = QdrantClient(host="192.168.1.10", port=6333)
 
 collection_name = "orxid_collection"
 vectors_config = models.VectorParams(

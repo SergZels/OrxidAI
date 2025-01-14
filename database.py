@@ -34,18 +34,6 @@ class BotBD:
     async def getUserIdTEST(self):
         return [1080587853,1080587853,1080587853,1080587853,1080587853]
 
-    async def getAllUsers(self):
-        today = datetime.date.today()  # Отримуємо сьогоднішню дату
-        async with aiosqlite.connect(self.db_path) as db:
-            async with db.execute("""
-                SELECT telegramId, number_of_requests, requestsCurentDate, curentDate 
-                FROM users 
-                WHERE curentDate = ?
-                ORDER BY number_of_requests DESC
-            """, (today,)) as cursor:
-                rows = await cursor.fetchall()
-                return '\n'.join([f"{i[0]} - ({i[1]}/{i[2]})" for i in rows[:30]])
-
     async def usersCount(self):
         async with aiosqlite.connect(self.db_path) as db:
             async with db.execute("SELECT DISTINCT telegramId FROM users") as cursor:

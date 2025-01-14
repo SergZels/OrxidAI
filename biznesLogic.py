@@ -4,7 +4,7 @@ from aiogram.filters import CommandStart
 from aiogram.enums import ChatAction
 import logging
 from qdrant import find_answer
-from init import TELEGRAM_API_URL, model,DataBase,bot,AdminIDSerg
+from init import TELEGRAM_API_URL, model,DataBase,bot,AdminIDSerg, redis_client
 import aiohttp
 import asyncio
 
@@ -31,13 +31,14 @@ def prepare_prompt(user_message: str) -> str:
     
     Загальна інформація про компанію:
     Ательє Орхідея займається пошиттям і ремонтом одягу та прокатом костюмів. Працює на ринку з 2002 року.
-    Адреса: вул. 22 січня, 17а (біля стадіону) телефон 067777777 email: zelse@ukr.net
-    Графік роботи: пн-пт 9:00-18:00, сб 9:00-15:00, нд та дні релігійних свят вихідний
+    Адреса: вул. 22 січня, 17а (біля стадіону) телефон 097 65 38 200 email: zelse@ukr.net сайт🌍: orxid.in.ua
+    Графік роботи 📆: пн-пт 9:00-18:00, сб 9:00-15:00, нд та дні релігійних свят вихідний. Працюємо без обіду.
     
     Детальніша інформація про компанію із векторної бази знань:
     {find_answer(user_message, top_k=2)}
     
-
+    Якщо клієнт буде уточнювати чи є товар на складі, то відповідайт, що не володієш інформацією про наявність і давай номер телефону на фірму.
+    Також по можливості старайся додати смайлики та емодзі у відповіді.
     Запитання клієнта: {user_message}
     """
 
@@ -69,12 +70,24 @@ async def send_welcome(message: Message):
         #await bot.send_message(AdminIDSerg, f"Новенький підписався! Нік - {message.from_user.username}")
 
 
-
 @router.message()
 async def handle_question(message: Message):
     await message.bot.send_chat_action(chat_id=message.chat.id, action=ChatAction.TYPING)
+
+    cache_key = f"response:{message.text.strip().lower()}"
+
+    cached_response = redis_client.get(cache_key)
+    if cached_response:
+        await message.answer(cached_response)
+        return
+
+    # Якщо немає в кеші, генеруємо відповідь
     prompt = prepare_prompt(message.text)
     bot_response = model.generate_content(prompt)
+
+    # Зберігаємо відповідь у Redis (наприклад, на 1 годину)
+    redis_client.setex(cache_key, 3600, bot_response.text)
+
     await message.answer(bot_response.text)
 
 
