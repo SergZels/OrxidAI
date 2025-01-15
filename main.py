@@ -144,66 +144,6 @@ async def add_data():
 
     return RedirectResponse("/", status_code=302)
 
-@app.get(f'/{URL}', response_class=HTMLResponse)
-async def adminka(request: Request, password: str = Depends(get_password)):
-
-    logger.info(f"Вхід в адмінку")
-    return "CB bot"
-
-
-async def mybroadcast(bro):
-    # records = await botBD.getUserId()
-    # for telegram_id in records:
-    #     await send_telegram_message(telegram_id, bro)
-    #     #await bot.send_message(AdminIDSerg, f"Надіслано повідомлення користувачу {telegram_id}")
-    #     await asyncio.sleep(3)
-    pass
-
-@app.post(f"/{URL}/broadcast")
-async def start_broadcast(
-        brotext: str = Form(...),  # Отримуємо дані як form-data
-        sec: str = Form(...),  # Також form-data
-        background_tasks: BackgroundTasks = BackgroundTasks()
-):
-    if sec=="1432":
-        background_tasks.add_task(mybroadcast, brotext)
-        return {"status": "Broadcast started!"}
-    else:
-        raise HTTPException(status_code=400, detail="Invalid secret key")
-
-@app.get(f"/{URL}/api/users")
-async def get_users():
-    pass
-   # users = await botBD.getUsers()
-    #return {'users': users}
-
-@app.get(f"/{URL}/api/response")
-async def get_users():
-    pass
-    # resp = await botBD.getAllResponse()
-   # return {'response': resp}
-
-# @app.get(f"/{URL}/logs", response_class=HTMLResponse)
-# async def get_logs(request: Request):
-#     log_file_path = "Logfile.txt"  # Вкажіть шлях до вашого файлу логів
-#     if os.path.exists(log_file_path):
-#         try:
-#             with open(log_file_path, "r", encoding="utf-8") as file:
-#                 content = file.readlines()
-#                 last_100_lines = ''.join(content[-100:])
-#             html_content = f"""
-#                 <html>
-#                     <body>
-#                         <h1>Логи</h1>
-#                         <pre>{last_100_lines}</pre>
-#                     </body>
-#                 </html>
-#                 """
-#             return HTMLResponse(content=html_content)
-#         except:
-#             print("файл не відкрився")
-#     else:
-#         return "<html><body><h1>Файл логів не знайдено</h1></body></html>"
 
 @app.on_event("startup")
 async def startup_event():

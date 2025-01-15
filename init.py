@@ -21,7 +21,7 @@ if SERV:
     API_TOKEN = os.getenv("API_TOKEN")
     TELEGRAM_API_URL = f'https://api.telegram.org/bot{API_TOKEN}/sendMessage'
 else:
-    API_TOKEN = os.getenv("API_TOKEN")
+    API_TOKEN = os.getenv("API_TOKEN_Test")
     TELEGRAM_API_URL = f'https://api.telegram.org/bot{API_TOKEN}/sendMessage'
 
 PASSWORD = os.getenv("PASSWORD")

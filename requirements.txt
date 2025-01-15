@@ -9,3 +9,4 @@ uvicorn
 python-multipart
 aiosqlite
 redis
+jinja2
