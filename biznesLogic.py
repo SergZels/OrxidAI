@@ -7,7 +7,7 @@ from qdrant import find_answer
 from init import TELEGRAM_API_URL, model,DataBase,bot,AdminIDSerg, redis_client
 import aiohttp
 import asyncio
-
+from datetime import datetime
 
 router = Router()
 
@@ -89,6 +89,10 @@ def get_last_messages(user_id):
     messages = [eval(msg) for msg in messages]
     return messages
 
+def add_message_to_file(message):
+    with open('conversation.txt', "a", encoding="utf-8") as file:
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        file.write(f"{timestamp}:\n{message}\n")
 
 @router.message(CommandStart())
 async def send_welcome(message: Message):
@@ -98,6 +102,10 @@ async def send_welcome(message: Message):
         await DataBase.add_subscriber(message.from_user.id, message.from_user.username)
         #await bot.send_message(AdminIDSerg, f"Новенький підписався! Нік - {message.from_user.username}")
 
+@router.message(F.text  == "Файл12")
+async def file12(message: types.Message):
+    file = FSInputFile("conversation.txt")
+    await message.answer_document(document=file)
 
 @router.message()
 async def handle_question(message: Message):
@@ -115,11 +123,11 @@ async def handle_question(message: Message):
     vectorData = find_answer(message.text, top_k=2)
     conversational = get_last_messages(message.from_user.id)
     prompt = prepare_prompt(message.text, vectorData, conversational)
-    print(prompt)
     bot_response = model.generate_content(prompt)
     add_message(message.from_user.id, "bot", f"відповідь бота: {bot_response.text} та дані із векторної бази {vectorData}")
     # Зберігаємо відповідь у Redis (наприклад, на 1 годину)
     redis_client.setex(cache_key, 3600, bot_response.text)
+    add_message_to_file(f"👨‍💼 Користувач  {message.from_user.username} запитав: {message.text}\n🤖 Бот відповів: {bot_response.text}")
     logger.info(f"Користувач {message.from_user.username} запитав: {message.text}\nБот відповів: ")
     await message.answer(bot_response.text)
 
@@ -131,10 +139,7 @@ async def answer_yes(message: Message):
 
 
 
-@router.callback_query(F.data == "file12")
-async def file12(callback: types.CallbackQuery):
-    file = FSInputFile("Logfile.txt")
-    await callback.message.answer_document(document=file)
+
 
 
 
