@@ -6,6 +6,9 @@ from aiogram.enums import ParseMode
 import google.generativeai as genai
 from database import BotBD
 import redis
+from qdrant_client import QdrantClient
+from sentence_transformers import SentenceTransformer
+from qdrant_client.http import models as modelsqd
 
 load_dotenv()
 
@@ -30,6 +33,14 @@ AdminIDSerg = os.getenv("ADMIN_SERG")
 AdminIDJulia = os.getenv("ADMIN_Julia")
 AdminID = [AdminIDSerg, AdminIDJulia]
 BroadcastURL = os.getenv("BroadcastURL")
+
+modelEmbed = SentenceTransformer('all-MiniLM-L6-v2')
+
+#client = QdrantClient(path="./qa_storage")
+client = QdrantClient(host="192.168.1.10", port=6333)
+
+collection_name = "orxid_collection"
+
 bot = Bot(token=API_TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
 DataBase = BotBD()
 redis_client = redis.Redis(host='192.168.1.10', port=6379, db=0, decode_responses=True)

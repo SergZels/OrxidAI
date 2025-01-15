@@ -64,6 +64,8 @@ async def send_telegram_message(chat_id, text):
             print(f"Помилка при надсиланні телеграм повідомлення до {chat_id}: {e}")
             return None
 
+
+
 def add_message(user_id, sender, message):
     # Redis зберігає історію для кожного користувача як список
     key = f"conversation:{user_id}"  # Ключ для користувача

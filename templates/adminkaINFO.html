@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Редагування даних Qdrant</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Редагування даних Орхідеї</h1>
+        <div id="editor"></div>
+        <button class="btn" onclick="updateData()">Обновити</button>
+      <hr>
+        <button class="btnadd" onclick="addData()">Додати дані</button>
+    </div>
+
+    <script>
+       async function addData() {
+         const response = await fetch("/add-data");
+         editor.innerHTML ='';
+         loadData();
+
+       }
+        async function loadData() {
+            const response = await fetch("/get_all");
+            const data = await response.json();
+            const editor = document.getElementById("editor");
+            editor.innerHTML = data.map(item => `
+                <div class="item" data-id="${item.id}">
+                    <label>${item.id} Питання:</label>
+                    <input type="text" class="question" value="${item.question}">
+                    <label>Відповідь:</label>
+                    <input type="text" class="answer" value="${item.answer}">
+                    <hr>
+                </div>
+            `).join('');
+        }
+
+        async function updateData() {
+            const editor = document.getElementById("editor");
+            const items = editor.querySelectorAll("div[data-id]");
+            const updatedData = Array.from(items).map(item => ({
+                id: parseInt(item.getAttribute("data-id")),
+                question: item.querySelector(".question").value,
+                answer: item.querySelector(".answer").value
+            }));
+
+            const response = await fetch("/update_all", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(updatedData)
+            });
+
+            const result = await response.json();
+            alert(result.message);
+        }
+
+        loadData();
+    </script>
+</body>
+</html>

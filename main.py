@@ -2,14 +2,17 @@ from aiogram import  Dispatcher
 from aiogram.types import Update
 from fastapi import FastAPI, HTTPException,status,Depends,BackgroundTasks, Form
 from fastapi.security import APIKeyQuery
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.requests import Request
+from fastapi.templating import Jinja2Templates
+from fastapi.staticfiles import StaticFiles
 import uvicorn
 import asyncio
-
+from pydantic import BaseModel
 from contextlib import asynccontextmanager
 from biznesLogic import router, logger,send_telegram_message
-from init import bot,SERV,WebhookURL,URL,PASSWORD,AdminIDSerg,DataBase
+from init import (bot,SERV,WebhookURL,URL,PASSWORD,AdminIDSerg,DataBase, modelEmbed ,
+                  client,collection_name, modelsqd)
 from fastapi.middleware.cors import CORSMiddleware
 
 dp = Dispatcher()
@@ -36,6 +39,9 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(lifespan=lifespan, docs_url=None, redoc_url=None)
+app.mount("/static", StaticFiles(directory="static"), name="static")
+templates = Jinja2Templates(directory="templates")
+
 origins = [
    "http://localhost",
    "http://127.0.0.1",
@@ -71,6 +77,72 @@ def get_password(password: str = Depends(api_key_query)): # функція пе�
     return password
 
 
+class QAData(BaseModel):
+    id: int
+    question: str
+    answer: str
+
+@app.get("/", response_class=HTMLResponse)
+async def read_root(request: Request):
+    """Веб-інтерфейс для редагування даних."""
+    return templates.TemplateResponse('adminkaINFO.html', {"request": request})
+
+
+@app.get("/get_all", response_model=list[QAData])
+async def get_all_data():
+    """Отримує всі дані з колекції Qdrant."""
+    results = client.scroll(collection_name=collection_name, limit=100)
+    data = [
+        {
+            "id": point.id,
+            "question": point.payload.get("question"),
+            "answer": point.payload.get("answer")
+        }
+        for point in results[0]
+    ]
+    return data
+
+@app.post("/update_all")
+async def update_all_data(data: list[QAData]):
+    """Оновлення даних."""
+    points = []
+    for item in data:
+        vector = modelEmbed.encode(item.question).tolist()
+        points.append(modelsqd.PointStruct(
+            id=item.id,
+            vector=vector,
+            payload={"question": item.question, "answer": item.answer}
+        ))
+
+    client.upsert(collection_name=collection_name, points=points)
+    return {"message": "Дані успішно оновлені!"}
+
+@app.get("/add-data")
+async def add_data():
+    # Отримуємо кількість існуючих записів у колекції
+    existing_points = client.count(collection_name=collection_name).count
+
+    # Генеруємо новий ідентифікатор (наприклад, на основі кількості записів)
+    new_id = existing_points + 1
+
+    # Додаємо пустий запис
+    client.upsert(
+        collection_name=collection_name,
+        points=[
+            modelsqd.PointStruct(
+                id=new_id,
+                vector=[0] * 384,  # Порожній вектор, наприклад, нульовий
+                payload={
+                    "question": "",  # Порожнє питання
+                    "answer": ""  # Порожня відповідь
+                }
+            )
+        ]
+    )
+
+    print(f"Додано новий пустий запис з ID {new_id}.")
+
+    return RedirectResponse("/", status_code=302)
 
 @app.get(f'/{URL}', response_class=HTMLResponse)
 async def adminka(request: Request, password: str = Depends(get_password)):
