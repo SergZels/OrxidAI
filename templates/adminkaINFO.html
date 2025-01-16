@@ -5,18 +5,33 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Редагування даних Qdrant</title>
     <link rel="stylesheet" href="/static/styles.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+
 </head>
 <body>
     <div class="container">
-        <h1>Редагування даних Орхідеї</h1>
+        <h1>Адмінка Орхідея AI</h1>
         <hr>
-        <button class="btnadd" onclick="addData()">Додати дані</button>
+          <div class="broadsact">
+         <h2>Повідомлення всім</h2>
+         <form action="/{{ URL }}/broadcast" method="get">
+            <textarea id="bro" name="bro" ></textarea>
+            <button type="submit" class="btn btn-danger">Надіслати</button>
+        </form>
+    </div>
+        <hr>
+        <h2>Редагування даних Орхідеї</h2>
+        <button class="btnadd btn btn-primary" onclick="addData()">Додати дані</button>
         <hr>
         <div id="editor"></div>
-        <button class="btn" onclick="updateData()">Обновити</button>
+        <button class="btn btn-success" onclick="updateData()">Обновити</button>
       <hr>
-
     </div>
+ <footer>
+     <div class="alert alert-primary " role="alert">
+ <h5>Zelse Soft 2025</h5>
+</div>
+    </footer>
 
     <script>
        async function addData() {
@@ -61,5 +76,7 @@
 
         loadData();
     </script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+
 </body>
 </html>

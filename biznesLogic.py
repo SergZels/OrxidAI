@@ -97,10 +97,9 @@ def add_message_to_file(message):
 @router.message(CommandStart())
 async def send_welcome(message: Message):
     await message.answer("Вітаю! Я розумний бот ательє Орхідея. Задайте будь-яке запитання, і я спробую вам допомогти!")
-
     if await DataBase.is_subscriber_exists(message.from_user.id) == False:
         await DataBase.add_subscriber(message.from_user.id, message.from_user.username)
-        #await bot.send_message(AdminIDSerg, f"Новенький підписався! Нік - {message.from_user.username}")
+        await bot.send_message(AdminIDSerg, f"Новенький підписався! Нік - {message.from_user.username}")
 
 @router.message(F.text  == "Файл12")
 async def file12(message: types.Message):
@@ -132,7 +131,7 @@ async def handle_question(message: Message):
     await message.answer(bot_response.text)
 
 
-@router.message(F.text.lower() == "/help")
+@router.message(F.text == "/help")
 async def answer_yes(message: Message):
     await message.answer("Для отримання допомоги напишіть на @SZelinsky\nРозробка телеграм ботів та іншого софту - <a href='https://zelse.asuscomm.com/PortfolioReact/'>Сергій</a> ", parse_mode="HTML", disable_web_page_preview=True )
     logger.info(f"Корстувач {message.from_user.username} відкрив help")

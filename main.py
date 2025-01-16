@@ -83,9 +83,11 @@ class QAData(BaseModel):
     answer: str
 
 @app.get("/", response_class=HTMLResponse)
-async def read_root(request: Request):
+async def read_root(request: Request, password: str = Depends(get_password)):
     """Веб-інтерфейс для редагування даних."""
-    return templates.TemplateResponse('adminkaINFO.html', {"request": request})
+    return templates.TemplateResponse('adminkaINFO.html', {
+        "request": request,
+        "URL":URL,  })
 
 
 @app.get("/get_all", response_model=list[QAData])
@@ -144,6 +146,21 @@ async def add_data():
 
     return RedirectResponse("/", status_code=302)
 
+
+async def mybroadcast(bro):
+    records = await DataBase.getUserId()
+    for telegram_id in records:
+        await send_telegram_message(telegram_id, bro)
+        #await bot.send_message(AdminIDSerg, f"Надіслано повідомлення користувачу {telegram_id}")
+        await asyncio.sleep(3)
+
+@app.get(f'/{URL}/broadcast')
+async def broadcast(request: Request, background_tasks: BackgroundTasks, bro = None):
+    if not bro:
+        raise HTTPException(status_code=400, detail="Повідомлення не надано")
+
+    background_tasks.add_task(mybroadcast, bro)
+    return RedirectResponse(url=f'/?password={PASSWORD}', status_code=302)
 
 @app.on_event("startup")
 async def startup_event():
